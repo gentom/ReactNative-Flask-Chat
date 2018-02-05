@@ -45,9 +45,11 @@ def send():
         'id': id,
     }
     chat.append(id)
-    return jsonify(messages)
+    return jsonify({
+        'id': id,
+    })
 
-
+@app.route("/get", defaults={'last_id': None})
 @app.route("/get/<last_id>", methods=["GET"])
 def get(last_id):
     if chat is None or len(chat) == 0:
@@ -55,7 +57,7 @@ def get(last_id):
     index = get_next_index(last_id) if last_id else 0    
     ids_to_return = chat[index:]
     results = map(lambda x: messages[x], ids_to_return)
-    return jsonify(list(results))
+    return jsonify(sorted(results, key=lambda x: x['timestamp']))
 
 @app.route("/update/<last_id>", methods=["GET"])
 def update(last_id):
