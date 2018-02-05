@@ -52,16 +52,27 @@ def send():
 def get(last_id):
     if chat is None or len(chat) == 0:
         return []
-    index = 0
-    if last_id:
-        try:
-            index = chat.index(last_id) + 1
-        except ValueError as e:
-            abort(400)
-    
+    index = get_next_index(last_id) if last_id else 0    
     ids_to_return = chat[index:]
     results = map(lambda x: messages[x], ids_to_return)
     return jsonify(list(results))
+
+@app.route("/update/<last_id>", methods=["GET"])
+def update(last_id):
+    index = get_next_index(last_id) if last_id else 0
+    result = {
+        'new_msgs': False 
+    }
+    if index < len(chat):
+        result['new_msgs'] = True
+    return jsonify(result)
+
+
+def get_next_index(last_id):
+    try:
+        index = chat.index(last_id) + 1
+    except ValueError as e:
+        abort(400)
 
 if __name__ == '__main__':
     app.run(debug=True, port=8668)
