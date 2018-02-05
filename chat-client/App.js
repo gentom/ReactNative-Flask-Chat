@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, Button, FlatList } from 'react-native';
 import axios from 'axios';
+import tail from 'lodash/tail';
 
 const serverURL = 'http://127.0.0.1:8668';
 const http = axios.create({
@@ -21,19 +22,46 @@ export default class App extends React.Component {
     if(!isLoggedIn){
       // POST to Flask Server
       http.post('/login', {username})
-      .then(() => this.setState({isLoggedIn: true}))
+      .then(() => this.onLoginSuccess())
       .catch((err) => console.log(err));
     } else {
       alert('You are already logged in !');
     }
   }
 
-  addMessage(message){
+  onLoginSuccess(){
+    this.setState({isLoggedIn: true});
+    this.getMessages();
+  }
+
+  addMessage(data){
     const { msgs } = this.state;
-    msgs.push(message);
+    const { id, message } = data;
+    msgs.push(data);
     this.setState({
       lastUpdated: new Date(),
+      lastID: id,
     });
+  }
+
+  addMessageList(list){
+    if (!list || list.length == 0) {
+      return;
+    } 
+    const { msgs } = this.state;
+    this.setState({
+      msgs: [...msgs, ...list],
+      lastUpdated: new Date(),
+      lastID: tail(list).id,
+    });
+  }
+
+  getMessages(){
+    const { lastID } = this.state;
+    // Get request to Flask Server
+    http.get(lastID ? `/get/${lastID}` : '/get')
+    .then((response) => this.addMessageList(response.data))
+    .catch((err) => console.log(err));
   }
 
   onMsgSend(){
@@ -43,7 +71,10 @@ export default class App extends React.Component {
       username,
       message: input,
     })
-    .then(() => this.addMessage(input));
+    .then((response) => this.addMessage({
+      message: input,
+      id: response.data.id,
+    }));
   }
 
 
@@ -61,10 +92,10 @@ export default class App extends React.Component {
 
         <FlatList>
           data = {msgs}
-          renderItem = {({item}) => <Text>{item}</Text>}
+          renderItem = {({item}) => <Text>{item.message}</Text>}
           extraData = {lastUpdated}
         </FlatList>
-        <TextInput style={{ height: 0, backgroundColor: '#ededed' }} onChangeText={(val) => this.setState({input: val})} />
+        <TextInput style={{ backgroundColor: '#ededed' }} onChangeText={(val) => this.setState({input: val})} />
         <Button title='send' onPress={() => this.onMsgSend()} />
       </View>
     );
@@ -79,3 +110,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 });
+
+/*
+# TODO
+1. add Update(Check for new messages) function
+*/
