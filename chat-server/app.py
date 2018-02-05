@@ -1,11 +1,15 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
+import uuid
+from datetime import datetime
 from flask import Flask, request, abort, jsonify
+
 
 app = Flask(__name__)
 
 users = []
+chat = [] # holds message id
+messages = dict()
 
 @app.route("/")
 def index():
@@ -40,10 +44,24 @@ def send():
         'timestamp': datetime.now(),
         'id': id,
     }
-
+    chat.append(id)
     return jsonify(messages)
 
 
+@app.route("/get/<last_id>", methods=["GET"])
+def get(last_id):
+    if chat is None or len(chat) == 0:
+        return []
+    index = 0
+    if last_id:
+        try:
+            index = chat.index(last_id) + 1
+        except ValueError as e:
+            abort(400)
+    
+    ids_to_return = chat[index:]
+    results = map(lambda x: messages[x], ids_to_return)
+    return jsonify(list(results))
 
 if __name__ == '__main__':
     app.run(debug=True, port=8668)
