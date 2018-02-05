@@ -90,14 +90,18 @@ export default class App extends React.Component {
           <Text>Online Status: {isLoggedIn ? 'Online' : 'Offline'}</Text>
         </View>
 
-        <FlatList>
+        <FlatList style={{ backgroundColor: '#ededed' }}>
           data = {msgs}
           renderItem = {({item}) => <Text>{item.message}</Text>}
           extraData = {lastUpdated}
         </FlatList>
-        <TextInput style={{ backgroundColor: '#ededed' }} onChangeText={(val) => this.setState({input: val})} />
-        <Button title='send' onPress={() => this.onMsgSend()} />
+
+        <View>
+          <TextInput style={{ backgroundColor: '#ededed' }} onChangeText={(val) => this.setState({input: val})} />
+          <Button title='send' onPress={() => this.onMsgSend()} />
+        </View>
       </View>
+
     );
   }
 }
