@@ -100,8 +100,8 @@ export default class App extends React.Component {
           <TextInput style={{ backgroundColor: '#ededed' }} onChangeText={(val) => this.setState({input: val})} />
           <Button title='send' onPress={() => this.onMsgSend()} />
         </View>
-      </View>
 
+      </View>
     );
   }
 }
